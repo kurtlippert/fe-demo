@@ -2,11 +2,16 @@ import 'bootstrap-utilities'
 import { render, html, TemplateResult } from "lit"
 import page from 'page'
 import axios from 'axios'
+import { JsonDecoder } from 'ts.data.json'
 
 interface Pokemon {
-  id: string
+  id: number,
   name: string
-  sprite: string
+  sprites: Sprites
+}
+
+interface Sprites {
+  front_default: string
 }
 
 type Location = 'Home' | 'About' | 'Topics' | 'Pokemon' | 'NotFound'
@@ -16,9 +21,11 @@ let topic = ''
 let count = 0
 
 let _pokemon: Pokemon = {
-  id: '',
+  id: -1,
   name: '',
-  sprite: ''
+  sprites: {
+    front_default: ''
+  }
 }
 
 let loadingPokemon = false
@@ -63,18 +70,48 @@ const topics = () => html`
   </div>
 `
 
+const pokemonDecoder = JsonDecoder.object<Pokemon>(
+  {
+    id: JsonDecoder.number,
+    name: JsonDecoder.string,
+    sprites: JsonDecoder.object<Sprites>(
+      {
+        front_default: JsonDecoder.string
+      },
+      'Sprites'
+    )
+  },
+  'Pokemon'
+)
+
 const getPokemon = (id = '1') => {
   axios.get(`https://pokeapi.co/api/v2/pokemon-form/${id}/`)
     .then(({ data }) => {
-      _pokemon = {
-        id: data.id,
-        name: data.name,
-        sprite: data.sprites['front_default']
-      }
+      pokemonDecoder.fold(
+        pokemon => _pokemon = pokemon,
+        err => {
+          console.error(err);
+          return _pokemon = {
+            id: -1,
+            name: 'error getting pokemon',
+            sprites: { front_default: '' }
+          }
+        },
+        data
+      )
       loadingPokemon = false
       reRender()
     })
-    .catch(error => console.error(error))
+    .catch(error => {
+      _pokemon = {
+        id: -1,
+        name: 'error getting pokemon',
+        sprites: { front_default: '' }
+      }
+      console.error(error)
+      loadingPokemon = false
+      reRender()
+    })
 }
 
 const pokemon = () => html`
@@ -94,7 +131,7 @@ const pokemon = () => html`
     <div class="m-2">
       <!-- need to add 'crossorigin' see: -->
       <!-- https://github.com/parcel-bundler/parcel/issues/6503#issuecomment-896596413 -->
-      <img src=${_pokemon.sprite} crossorigin="anonymous" />
+      <img src=${_pokemon.sprites.front_default} crossorigin="anonymous" />
       <div>${_pokemon.name}</div>
     </div>
   </div>
@@ -151,7 +188,7 @@ page('/topics/:topic', (ctx) => {
 })
 page('/pokemon', () => {
   location = 'Pokemon'
-  if (_pokemon.id === '') {
+  if (_pokemon.id === -1) {
     loadingPokemon = true
     getPokemon()
   }

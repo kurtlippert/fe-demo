@@ -4959,6 +4959,11 @@ trim-repeated@^1.0.0:
   dependencies:
     escape-string-regexp "^1.0.2"
 
+ts.data.json@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/ts.data.json/-/ts.data.json-2.0.0.tgz#d5e95df3204154fa5a967263327cd88179babe31"
+  integrity sha512-8U2KbfB39GjrxP4GVkuAitrIZj34DOFMcQ8qntKI/bzaTzgu5Dn4Vqt5JAl4DqxhOSvN102U1L8IIilm+C1otA==
+
 tty-browserify@^0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/tty-browserify/-/tty-browserify-0.0.1.tgz#3f05251ee17904dfd0677546670db9651682b811"
